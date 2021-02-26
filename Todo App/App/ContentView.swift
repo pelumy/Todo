@@ -9,36 +9,55 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
+    // MARK: - PROPERTIES
+    @State private var showingAddTodoView = false
+    
     @Environment(\.managedObjectContext) private var viewContext
-
+    
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
         animation: .default)
     private var items: FetchedResults<Item>
-
+    
+    // MARK: - BODY
     var body: some View {
-        List {
-            ForEach(items) { item in
-                Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-            }
-            .onDelete(perform: deleteItems)
-        }
-        .toolbar {
-            #if os(iOS)
-            EditButton()
-            #endif
-
-            Button(action: addItem) {
-                Label("Add Item", systemImage: "plus")
-            }
-        }
+        NavigationView {
+            List {
+                ForEach(items) { item in
+                    Text("Item at \(item.timestamp!, formatter: itemFormatter)")
+                }
+                .onDelete(perform: deleteItems)
+            } // List
+            .navigationBarTitle("Todo", displayMode: .inline)
+            .navigationBarItems(trailing:
+                                    Button(action: {
+                                        showingAddTodoView.toggle()
+                                    }, label: {
+                                        Image(systemName: "plus")
+                                        
+                                    })
+                                    .sheet(isPresented: $showingAddTodoView, content: {
+                                        AddTodoView()
+                                    })
+                                    
+            )
+            //            .toolbar {
+            //                #if os(iOS)
+            //                EditButton()
+            //                #endif
+            //
+            //                Button(action: addItem) {
+            //                    Label("Add Item", systemImage: "plus")
+            //                }
+            //            }
+        } // Navigation
     }
-
+    
     private func addItem() {
         withAnimation {
             let newItem = Item(context: viewContext)
             newItem.timestamp = Date()
-
+            
             do {
                 try viewContext.save()
             } catch {
@@ -49,11 +68,11 @@ struct ContentView: View {
             }
         }
     }
-
+    
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
             offsets.map { items[$0] }.forEach(viewContext.delete)
-
+            
             do {
                 try viewContext.save()
             } catch {
@@ -73,6 +92,7 @@ private let itemFormatter: DateFormatter = {
     return formatter
 }()
 
+// MARK: - PREVIEW
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
