@@ -22,33 +22,40 @@ struct ContentView: View {
     // MARK: - BODY
     var body: some View {
         NavigationView {
-            List {
-                ForEach(self.todos, id: \.self) { todo in
-                    HStack {
-                        Text(todo.name ?? "Unknown")
-                        
-                        Spacer()
-                        
-                        Text(todo.priority  ?? "Unknown")
-                    } // Hstack
+            ZStack {
+                List {
+                    ForEach(self.todos, id: \.self) { todo in
+                        HStack {
+                            Text(todo.name ?? "Unknown")
+                            
+                            Spacer()
+                            
+                            Text(todo.priority  ?? "Unknown")
+                        } // Hstack
+                    }
+                    .onDelete(perform: deleteTodo)
+                } // List
+                .navigationBarTitle("Todo", displayMode: .inline)
+                .navigationBarItems(
+                    leading: EditButton(),
+                    trailing:
+                        Button(action: {
+                            showingAddTodoView.toggle()
+                        }, label: {
+                            Image(systemName: "plus")
+                            
+                        })
+                        .sheet(isPresented: $showingAddTodoView, content: {
+                            AddTodoView().environment(\.managedObjectContext, self.viewContext)
+                        })
+                    
+                )
+                
+                // MARK: - NO TODO ITEMS
+                if todos.count == 0 {
+                    EmptyListView()
                 }
-                .onDelete(perform: deleteTodo)
-            } // List
-            .navigationBarTitle("Todo", displayMode: .inline)
-            .navigationBarItems(
-                leading: EditButton(),
-                trailing:
-                                    Button(action: {
-                                        showingAddTodoView.toggle()
-                                    }, label: {
-                                        Image(systemName: "plus")
-                                        
-                                    })
-                                    .sheet(isPresented: $showingAddTodoView, content: {
-                                        AddTodoView().environment(\.managedObjectContext, self.viewContext)
-                                    })
-                                    
-            )
+            } // Zstack
             //            .toolbar {
             //                #if os(iOS)
             //                EditButton()
@@ -63,26 +70,26 @@ struct ContentView: View {
     
     // MARK: - FUNCTIONS
     
-//    private func addItem() {
-//        withAnimation {
-//            let newItem = Item(context: viewContext)
-//            newItem.timestamp = Date()
-//
-//            do {
-//                try viewContext.save()
-//            } catch {
-//                // Replace this implementation with code to handle the error appropriately.
-//                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-//                let nsError = error as NSError
-//                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-//            }
-//        }
-//    }
-//
+    //    private func addItem() {
+    //        withAnimation {
+    //            let newItem = Item(context: viewContext)
+    //            newItem.timestamp = Date()
+    //
+    //            do {
+    //                try viewContext.save()
+    //            } catch {
+    //                // Replace this implementation with code to handle the error appropriately.
+    //                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+    //                let nsError = error as NSError
+    //                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+    //            }
+    //        }
+    //    }
+    //
     private func deleteTodo(offsets: IndexSet) {
         withAnimation {
             offsets.map { todos[$0] }.forEach(viewContext.delete)
-
+            
             do {
                 try viewContext.save()
             } catch {
