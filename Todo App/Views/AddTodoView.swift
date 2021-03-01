@@ -48,12 +48,12 @@ struct AddTodoView: View {
                             } catch {
                                 print(error)
                             }
+                            presentationMode.wrappedValue.dismiss()
                         } else {
                             errorShowing = true
                             errorTitle = "Invalid Name"
                             errorMessage = "Make sure to enter something for \n the new todo item."
                         }
-                        presentationMode.wrappedValue.dismiss()
                     }, label: {
                         Text("Save")
                     })
