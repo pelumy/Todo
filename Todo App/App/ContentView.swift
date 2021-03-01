@@ -11,6 +11,8 @@ import CoreData
 struct ContentView: View {
     // MARK: - PROPERTIES
     @State private var showingAddTodoView = false
+    @State private var animatingButton = false
+    @State private var showingSettingsView = false
     
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -40,13 +42,13 @@ struct ContentView: View {
                     leading: EditButton(),
                     trailing:
                         Button(action: {
-                            showingAddTodoView.toggle()
+                            showingSettingsView.toggle()
                         }, label: {
-                            Image(systemName: "plus")
+                            Image(systemName: "paintbrush")
                             
                         })
-                        .sheet(isPresented: $showingAddTodoView, content: {
-                            AddTodoView().environment(\.managedObjectContext, self.viewContext)
+                        .sheet(isPresented: $showingSettingsView, content: {
+                            SettingsView()
                         })
                     
                 )
@@ -56,6 +58,47 @@ struct ContentView: View {
                     EmptyListView()
                 }
             } // Zstack
+            .sheet(isPresented: $showingAddTodoView, content: {
+                AddTodoView().environment(\.managedObjectContext, self.viewContext)
+            })
+            .overlay(
+                ZStack {
+                    
+                    Group {
+                        Circle()
+                            .fill(Color.blue)
+                            .opacity(animatingButton ? 0.2 : 0)
+                            .scaleEffect(animatingButton ? 1 : 0)
+                            .frame(width: 68, height: 68, alignment: .center)
+
+                        Circle()
+                            .fill(Color.blue)
+                            .opacity(animatingButton ? 0.15 : 0)
+                            .scaleEffect(animatingButton ? 1 : 0)
+                            .frame(width: 88, height: 88, alignment: .center)
+                    }
+                    
+                    Button(action: {
+                        showingAddTodoView.toggle()
+                    }, label: {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .background(Circle().fill(Color("ColorBase")))
+                            .frame(width: 48, height: 48, alignment: .center)
+                        
+                    }) // Button
+                    .onAppear(perform: {
+                        
+                        withAnimation(Animation.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                            animatingButton.toggle()
+                        }
+                    })
+                } //ZStack
+                .padding(.bottom, 15)
+                .padding(.trailing, 15)
+                , alignment: .bottomTrailing
+            )
             //            .toolbar {
             //                #if os(iOS)
             //                EditButton()
