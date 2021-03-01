@@ -37,7 +37,7 @@ struct ContentView: View {
                                         
                                     })
                                     .sheet(isPresented: $showingAddTodoView, content: {
-                                        AddTodoView()
+                                        AddTodoView().environment(\.managedObjectContext, self.viewContext)
                                     })
                                     
             )

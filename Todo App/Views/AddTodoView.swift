@@ -10,9 +10,15 @@ import SwiftUI
 struct AddTodoView: View {
     // MARK: - PROPERTIES
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.managedObjectContext) private var viewContext
+    
     @State private var name = ""
     @State private var priority = "Normal"
     let priorities = ["Normal", "High", "Low"]
+    
+    @State private var errorShowing = false
+    @State private var errorTitle = ""
+    @State private var errorMessage = ""
     
     // MARK: - BODY
     var body: some View {
@@ -32,7 +38,22 @@ struct AddTodoView: View {
                     
                     // MARK: - SAVE BUTTON
                     Button(action: {
-                        
+                        if name != "" {
+                            let todo = Item(context: self.viewContext)
+                            todo.name = name
+                            todo.priority = priority
+                            
+                            do {
+                                try viewContext.save()
+                            } catch {
+                                print(error)
+                            }
+                        } else {
+                            errorShowing = true
+                            errorTitle = "Invalid Name"
+                            errorMessage = "Make sure to enter something for \n the new todo item."
+                        }
+                        presentationMode.wrappedValue.dismiss()
                     }, label: {
                         Text("Save")
                     })
@@ -40,6 +61,9 @@ struct AddTodoView: View {
                 
                 Spacer()
             } // VStack
+            .alert(isPresented: $errorShowing, content: {
+                Alert(title: Text(errorTitle), message: Text(errorMessage), dismissButton: .default(Text("OK")))
+            })
             .navigationBarTitle("New Todo", displayMode: .inline)
             .navigationBarItems(trailing:
                                     Button(action: {
